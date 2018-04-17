@@ -116,7 +116,7 @@ def main():
     for key in COLUMN_NAMES:
         feature_columns.append(tf.feature_column.numeric_column(key=key))
 
-    hidden_units = [10, 10]
+    hidden_units = [8, 8]
 
     classifier = tf.estimator.DNNClassifier(
         feature_columns = feature_columns,

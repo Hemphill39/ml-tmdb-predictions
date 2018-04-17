@@ -106,3 +106,6 @@ pip-selfcheck.json
 
 # mac os 
 .DS_Store
+
+.vscode
+.R
