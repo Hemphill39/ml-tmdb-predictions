@@ -4,6 +4,7 @@ import pandas as pd
 import json
 import tensorflow as tf
 
+PRODUCTION_COMPANIES = ['Warner Bros.', 'Universal Pictures', 'Paramount Pictures', 'Twentieth Century Fox Film Corporation', 'Columbia Pictures', 'New Line Cinema', 'Relativity Media','Touchstone Pictures', 'Columbia Pictures Corporation', 'Village Roadshow Pictures', 'Metro-Goldwyn-Mayer (MGM)', 'Regency Enterprises', 'Walt Disney Pictures', 'Miramax Films', 'DreamWorks SKG', 'Dune Entertainment', 'Canal+', 'Fox Searchlight Pictures', 'United Artists', 'Summit Entertainment', 'Lionsgate', 'Working TitleFilms', 'TriStar Pictures', 'Fox 2000 Pictures', 'Amblin Entertainment', 'StudioCanal', 'New Regency Pictures', 'The Weinstein Company', 'Legendary Pictures']
 
 CLASSIFICATIONS = [
     'LOW',
@@ -15,15 +16,8 @@ CLASSIFICATIONS = [
     'ULTRA-HIGH'
 ]
 
-CLASSIFICATIONS_FLOAT = [
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6
-]
+CLASSES = 20
+CLASSIFICATIONS_FLOAT = range(CLASSES)
 
 COLUMN_NAMES = [
     'budget',
@@ -31,6 +25,10 @@ COLUMN_NAMES = [
     'runtime',
     'vote_average',
     'vote_count'
+]
+
+COLUMNS_TO_KEEP = COLUMN_NAMES + [
+    'production_companies'
 ]
 
 COLUMNS_TO_POP = [
@@ -42,7 +40,6 @@ COLUMNS_TO_POP = [
     'original_language',
     'original_title',
     'overview',
-    'production_companies',
     'production_countries',
     'release_date',
     'spoken_languages',
@@ -61,16 +58,18 @@ def load_data():
 
     all_movie_data = pd.read_csv('tmdb_5000_movies.csv', na_values=[])
     for key in all_movie_data.columns:
-        if key not in COLUMN_NAMES and key != 'revenue':
+        if key not in COLUMNS_TO_KEEP and key != 'revenue':
             all_movie_data.pop(key)
 
-    # TODO remove any row with null data
     all_movie_data = all_movie_data[~(all_movie_data.isnull().any(axis=1))]
     # all_credit_data = pd.read_csv('tmdb_5000_credits.csv')
 
     zero_revenue_indices = all_movie_data.revenue != 0
     all_movie_data = all_movie_data[zero_revenue_indices]
     # all_credit_data = all_credit_data[zero_revenue_indices]
+
+    for idx, prod_comp in enumerate(PRODUCTION_COMPANIES):
+        all_movie_data['prod_comp' + str(idx)] = all_movie_data.apply(lambda row: 1 if prod_comp in row.production_companies else 0, axis=1)
 
     # bin the revenue data
     all_movie_data['revenue'] = pd.cut(all_movie_data['revenue'], len(CLASSIFICATIONS_FLOAT), labels=CLASSIFICATIONS_FLOAT).cat.codes.astype(np.int64)
@@ -116,7 +115,10 @@ def main():
     for key in COLUMN_NAMES:
         feature_columns.append(tf.feature_column.numeric_column(key=key))
 
-    hidden_units = [8, 8]
+    # for idx, prod_comp in enumerate(PRODUCTION_COMPANIES):
+    #     feature_columns.append(tf.feature_column.numeric_column(key='prod_comp' + str(idx)))
+
+    hidden_units = [64, 32]
 
     classifier = tf.estimator.DNNClassifier(
         feature_columns = feature_columns,
