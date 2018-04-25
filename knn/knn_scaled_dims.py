@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.neighbors import NearestNeighbors, KNeighborsClassifier
+from sklearn.preprocessing import scale, StandardScaler
 
 NUM_OF_CLASSES = [6, 8, 10, 12, 14, 16, 18, 20, 22, 24]
 K_VALUES = [2, 3, 5, 7, 9]
@@ -39,7 +40,7 @@ all_movie_data = 0
 
 def load_data():
     global all_movie_data 
-    all_movie_data = pd.read_csv('tmdb_5000_movies.csv', na_values=[])
+    all_movie_data = pd.read_csv('../tmdb_5000_movies.csv', na_values=[])
 
 def filter_data(classes):
     global all_movie_data
@@ -57,13 +58,14 @@ def filter_data(classes):
     # all_credit_data = all_credit_data[zero_revenue_indices]
 
     # bin the revenue data
-    #20 equal bins
     all_movie_data['revenue'] = pd.cut(all_movie_data['revenue'], len(range(classes)), labels=range(classes)).cat.codes.astype(np.int64)
     train_data = all_movie_data.sample(int(0.8 * len(all_movie_data)))
     train_data_labels = train_data.pop('revenue')
     test_data = all_movie_data.drop(train_data.index)
+    train_data_scaled = scale(train_data)
     test_data_labels = test_data.pop('revenue')
-    return (train_data, train_data_labels), (test_data, test_data_labels)
+    test_data_scaled = scale(test_data)
+    return (train_data_scaled, train_data_labels), (test_data_scaled, test_data_labels)
 
 def get_accuracy(knn_result_indices, train_data, train_data_labels, test_data_labels):
     dimensions = np.shape(knn_result_indices)
@@ -75,17 +77,23 @@ def get_accuracy(knn_result_indices, train_data, train_data_labels, test_data_la
         print(str(knn_result) + str(test_data_labels.tolist()[i]))
 
 def main():
+    load_data()
+    global all_movie_data
+    k_samples = 5
     accuracies = []
     for classes in NUM_OF_CLASSES:
         (train, train_labels), (test, test_labels) = filter_data(classes)
         class_accuracies = []
         for k in K_VALUES:
-            knn = KNeighborsClassifier(n_neighbors = k, weights='uniform', algorithm='auto')
-            knn.fit(train, train_labels)
-            test_predict = knn.predict(test)
-            accuracy = (accuracy_score(test_labels, test_predict))
-            class_accuracies.append(accuracy)
-            print('Accuracy for K=' + str(k) + ' Num Classes = ' + str(classes) + ' = ' + str(accuracy))
+            k_accuracies = []
+            for i in range(k_samples):
+                knn = KNeighborsClassifier(n_neighbors = k, weights='uniform', algorithm='auto')
+                knn.fit(train, train_labels)
+                test_predict = knn.predict(test)
+                k_accuracies.append(accuracy_score(test_labels, test_predict))
+            avg_accuracy = sum(k_accuracies) / k_samples
+            class_accuracies.append(avg_accuracy)
+            print('Accuracy for K=' + str(k) + ' Num Classes = ' + str(classes) + ' = ' + str(avg_accuracy))
         print 
 
 main()	
