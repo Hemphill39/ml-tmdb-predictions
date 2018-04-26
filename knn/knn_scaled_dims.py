@@ -5,7 +5,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.neighbors import NearestNeighbors, KNeighborsClassifier
 from sklearn.preprocessing import scale, StandardScaler
 
-NUM_OF_CLASSES = [6, 8, 10, 12, 14, 16, 18, 20, 22, 24]
+NUM_OF_CLASSES = [6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30]
 K_VALUES = [2, 3, 5, 7, 9]
 
 COLUMN_NAMES = [
@@ -19,6 +19,7 @@ COLUMN_NAMES = [
 COLUMNS_TO_KEEP = COLUMN_NAMES
 
 COLUMNS_TO_POP = [
+ #   'runtime',
     'genres',
     'homepage',
     'keywords',
@@ -94,6 +95,8 @@ def main():
             avg_accuracy = sum(k_accuracies) / k_samples
             class_accuracies.append(avg_accuracy)
             print('Accuracy for K=' + str(k) + ' Num Classes = ' + str(classes) + ' = ' + str(avg_accuracy))
+        accuracies.append(class_accuracies)
         print 
+
 
 main()	

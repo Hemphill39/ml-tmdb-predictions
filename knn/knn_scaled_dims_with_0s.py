@@ -5,7 +5,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.neighbors import NearestNeighbors, KNeighborsClassifier
 from sklearn.preprocessing import scale, StandardScaler
 
-NUM_OF_CLASSES = [6, 8, 10, 12, 14, 16, 18, 20, 22, 24]
+NUM_OF_CLASSES = [6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30]
 K_VALUES = [2, 3, 5, 7, 9]
 
 COLUMN_NAMES = [
@@ -90,5 +90,6 @@ def main():
             class_accuracies.append(avg_accuracy)
             print('Accuracy for K=' + str(k) + ' Num Classes = ' + str(classes) + ' = ' + str(avg_accuracy))
         print 
+        accuracies.append(class_accuracies)
 
 main()	
